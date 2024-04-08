@@ -10,7 +10,7 @@ int main() {
     char *path = make_pathname("usr/local/bin", "example", "txt");
     if (path != NULL) {
         printf("Pathname: %s\n", path);
-        free(path); // Don't forget to free the allocated memory!
+        free(path); // Important: Free the allocated memory!
     } else {
         printf("Failed to allocate memory for the pathname.\n");
     }
@@ -31,19 +31,33 @@ char* make_pathname(const char *dir, const char *fname, const char *ext) {
         if (ext[i] == '/' || ext[i] == '.') return NULL;
     }
 
+    size_t dirlen = strlen(dir);
+    size_t filelen = strlen(fname);
+    size_t extlen = strlen(ext);
+
     // Calculate needed memory size (+3 for "/", "." and the null terminator)
-    size_t size = strlen(dir) + strlen(fname) + strlen(ext) + 3;
+    size_t size = dirlen + 1 + filelen + 1 + extlen + 1; // Updated calculation
     char *result = (char *)malloc(size);
     if (result == NULL) {
         return NULL; // Memory allocation failed
     }
 
-    // Construct the path
-    strcpy(result, dir);
-    strcat(result, "/");
-    strcat(result, fname);
-    strcat(result, ".");
-    strcat(result, ext);
+    // Use the provided block for secure and efficient copying
+    if (dirlen > 0) {
+        memcpy(result, dir, dirlen);
+    }
+    result[dirlen] = '/';
+
+    if (filelen > 0) {
+        memcpy(result + dirlen + 1, fname, filelen);
+    }
+    result[dirlen + 1 + filelen] = '.';
+
+    if (extlen > 0) {
+        memcpy(result + dirlen + 1 + filelen + 1, ext, extlen);
+    }
+
+    result[dirlen + 1 + filelen + 1 + extlen] = '\0'; // Ensure the string is null-terminated
 
     return result;
 }
